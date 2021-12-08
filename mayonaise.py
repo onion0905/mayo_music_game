@@ -49,7 +49,6 @@ while running:
         pygame.draw.line(wn, (100, 100, 100), (150, 530),(650, 530))
     else:
         wn.blit(start_menu, (0, 0))
-        #wn.blit(icon, (100, 100))
         wn.blit(start_button, (370, 70))
         if mouse == "down":
             if mouse_pos[0] > 300 and mouse_pos[0] < 500 and mouse_pos[1] > 100 and mouse_pos[1] < 200:
