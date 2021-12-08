@@ -16,7 +16,7 @@ start_button = pygame.transform.scale(start_button, (200, 100))
 mayo = pygame.transform.rotate(mayo, 90)
 mayo = pygame.transform.scale(mayo, (100, 100))
 
-
+ 
 # Objects
 slot = (125, 30)
 rect = pygame.Rect(200, 0, 10, 600)
