@@ -27,7 +27,7 @@ display_pressed1 = pygame.Rect(150, 500, slot[0], slot[1])
 display_pressed2 = pygame.Rect(275, 500, slot[0], slot[1])
 display_pressed3 = pygame.Rect(400, 500, slot[0], slot[1])
 display_pressed4 = pygame.Rect(525, 500, slot[0], slot[1])
-music = "D:\\program project\\python_project\\Games\\mayo_music_game\\images\\umiyuri.mp3"
+music = "D:\\program project\\python_project\\Games\\mayo_music_game\\images\\ver.hard.mp3"
 
 
 # Main process
