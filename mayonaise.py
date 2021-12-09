@@ -5,13 +5,13 @@ pygame.init()
 # Screen
 wn = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Is Mayonnaise an Instrument?")
-mayo = pygame.image.load("images\mayo.webp")
+mayo = pygame.image.load("D:\program project\python_project\Games\mayo_music_game\images\mayo.webp")
 pygame.display.set_icon(mayo)
 
 # Back Ground
-start_menu = pygame.image.load("images\patrick_mayo.jpg")
+start_menu = pygame.image.load("D:\program project\python_project\Games\mayo_music_game\images\patrick_mayo.jpg")
 start_menu = pygame.transform.scale(start_menu, (800, 600))
-start_button = pygame.image.load("images\start_button.png")
+start_button = pygame.image.load("D:\program project\python_project\Games\mayo_music_game\images\start_button.png")
 start_button = pygame.transform.scale(start_button, (200, 100))
 mayo = pygame.transform.rotate(mayo, 90)
 mayo = pygame.transform.scale(mayo, (100, 100))
@@ -27,6 +27,7 @@ display_pressed1 = pygame.Rect(150, 500, slot[0], slot[1])
 display_pressed2 = pygame.Rect(275, 500, slot[0], slot[1])
 display_pressed3 = pygame.Rect(400, 500, slot[0], slot[1])
 display_pressed4 = pygame.Rect(525, 500, slot[0], slot[1])
+music = "D:\\program project\\python_project\\Games\\mayo_music_game\\images\\umiyuri.mp3"
 
 
 # Main process
@@ -53,6 +54,9 @@ while running:
         if mouse == "down":
             if mouse_pos[0] > 300 and mouse_pos[0] < 500 and mouse_pos[1] > 100 and mouse_pos[1] < 200:
                 back = 1
+                track = pygame.mixer.music.load(music)
+                pygame.mixer.music.set_volume(0.3)
+                pygame.mixer.music.play()
 
     # pressed key displaying
     keys = pygame.key.get_pressed()
