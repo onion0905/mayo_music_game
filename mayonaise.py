@@ -29,6 +29,7 @@ display_pressed2 = pygame.Rect(275, 500, slot[0], slot[1])
 display_pressed3 = pygame.Rect(400, 500, slot[0], slot[1])
 display_pressed4 = pygame.Rect(525, 500, slot[0], slot[1])
 music = "D:\\program project\\python_project\\Games\\mayo_music_game\\images\\ver.hard.mp3"
+track = pygame.mixer.music.load(music)
 
 # Notes
 '''
@@ -41,44 +42,52 @@ last two digits are for milisecond
 times_arrive = []
 times_drop = []
 notes = []
+note_dict = {64:0, 192:1, 320:2, 448:3}
 with open("D:\\program project\\python_project\\Games\\mayo_music_game\\times.txt", "r") as time_f:
     for i in time_f:
-        i = i
+        i = int(i)
+        i /= 1000
+        i = round(i, 4)
         times_arrive.append(i)
 
 with open("D:\\program project\\python_project\\Games\\mayo_music_game\\notes.txt", "r") as note_f:
     for i in note_f:
+        i = int(i)
+        i = note_dict[i]
         notes.append(i)
-        print(i)
-        print(type(i))
 
 for i in times_arrive:
-    a = float(i) -1
-    lena = a//10
-    lena = int(lena)
-    b = ""
-    for j in range(3 - lena):
-        b += "0"
-    b += str(a)
-    times_drop.append(b)
+    i -= 1
+    i = round(i, 4)
+    times_drop.append(i)
 
 # Functions
 locations = [160, 285, 410, 535]
-def show_mayo(note):
-    for i in range(len(note)):
-        if note[i] == '1':
-            wn.blit(mayo, (locations[i], 50))
-            print("blitted")
+# def show_mayo(note):
+#     for i in range(len(note)):
+#         if note[i] == '1':
+#             wn.blit(mayo, (locations[i], 50))
+#             print("blitted")
 
-
+print(times_arrive)
+print(times_drop)
 # Main process
 running = True
 back = 0
 mouse = ""
 pointer = 0
 start_time = 0
+started = False
+ended = False
+showing_array = []
+tapping_array = []
 while running:
     mouse_pos = pygame.mouse.get_pos()
+    now_time = time.time()
+    if not started:
+        start_time = now_time
+    time_pass = float(now_time - start_time)
+    time_pass = round(time_pass, 4)
     # background displaying
     if back:
         pygame.draw.rect(wn, (107, 186, 241), white_back) #waiting to be fixed
@@ -97,9 +106,9 @@ while running:
         if mouse == "down":
             if mouse_pos[0] > 300 and mouse_pos[0] < 500 and mouse_pos[1] > 100 and mouse_pos[1] < 200:
                 back = 1
-                track = pygame.mixer.music.load(music)
                 pygame.mixer.music.set_volume(0.3)
                 pygame.mixer.music.play()
+                started = True
                 start_time = time.time()
 
     # pressed key displaying
@@ -115,16 +124,30 @@ while running:
         pygame.draw.rect(wn, (99, 170, 219), display_pressed4)
 
     # Notes displaying
-    now_time = time.time()
-    time_pass = float(now_time - start_time)
+    
     #print(time_pass)
     #print(float(times_drop[pointer]))
     #print(notes[pointer])
     #print(type(notes[pointer]))
-    if time_pass <= float(times_drop[pointer])+0.1 and time_pass >= float(times_drop[pointer])-0.1:
-        show_mayo(notes[pointer])
-        wn.blit(mayo, (160, 50))
-        time.sleep(5)
+    while time_pass <= (times_drop[pointer])+0.1 and time_pass >= (times_drop[pointer])-0.1 and not ended:
+        data_array = []
+        data_array = [times_drop[pointer], locations[notes[pointer]], -100, times_arrive[pointer]]
+        showing_array.append(data_array)
+        print(data_array)
+        pointer += 1
+        if pointer > len(times_drop) - 2:
+            ended = True
+
+    for i in range(len(showing_array)):
+        try:
+            showing_array[i][2] += 1
+            if showing_array[i][3] < time_pass - 0.5:
+                del(showing_array[i])
+            else:
+                wn.blit(mayo, (showing_array[i][1], showing_array[i][2]))
+        except:
+            break
+
     
     
     # pygame events
