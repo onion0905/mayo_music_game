@@ -6,13 +6,13 @@ import time
 from pygame import draw
 pygame.init()
 
-mode = "normal"
+mode = "normal" # "normal" or "hard"
 drop_before_arrive = 0.8
 pixel_per_second = 565 / drop_before_arrive
 
 
 # Screen
-wn = pygame.display.set_mode((1200, 700))
+wn = pygame.display.set_mode((800 ,600))
 pygame.display.set_caption("Is Mayonnaise an Instrument?")
 mayo = pygame.image.load("images\mayo.webp")
 mayo.convert()
