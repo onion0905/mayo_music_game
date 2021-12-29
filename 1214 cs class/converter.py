@@ -35,8 +35,8 @@ with open("D:\\program project\\python_project\\Games\\mayo_music_game\\times.tx
         f_time.write(i)
         f_time.write("\n")
 
-with open("D:\\program project\\python_project\\Games\\mayo_music_game\\notes.txt", "a") as f_note:
-    for i in new_notes:
-        i = str(i)
-        f_note.write(i)
-        f_note.write("\n")
+# with open("D:\\program project\\python_project\\Games\\mayo_music_game\\notes.txt", "a") as f_note:
+#     for i in new_notes:
+#         i = str(i)
+#         f_note.write(i)
+#         f_note.write("\n")
