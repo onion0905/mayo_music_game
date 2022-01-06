@@ -6,7 +6,7 @@ import time
 from pygame import draw
 pygame.init()
 
-mode = "normal" # "normal" or "hard"
+mode = "hard" # "normal" or "hard"
 drop_before_arrive = 0.8
 pixel_per_second = 565 / drop_before_arrive
 
@@ -41,6 +41,7 @@ display_pressed3 = pygame.Rect(400, 500, slot[0], slot[1])
 display_pressed4 = pygame.Rect(525, 500, slot[0], slot[1])
 music = "images\\ver.hard.mp3"
 track = pygame.mixer.music.load(music)
+font = pygame.font.Font("freesansbold.ttf", 32)
 
 # files
 times_arrive = []
@@ -77,7 +78,7 @@ def check_dy(now_time, drop_time, cord_y):
     # else:
     #     return 3
     # return 0.6
-    return pixel_per_second * p - (cord_y+30)
+    return pixel_per_second * p - (cord_y+60)
 
 def check_remove(time_pass, showing_array_i, prev_key, block):
     block_check = showing_array_i[4] == block
@@ -100,6 +101,10 @@ def draw_back():
     pygame.draw.line(wn, (100, 100, 100), (150, 500),(650, 500))
     pygame.draw.line(wn, (100, 100, 100), (150, 530),(650, 530))
 
+def show_combo(x, y, combo):
+    combo_show = font.render(f"COMBO: {combo}", True, (255, 255, 255))
+    wn.blit(combo_show, (x, y))
+
 
 # Main process
 running = True
@@ -113,6 +118,9 @@ showing_array = []
 tapping_array = []
 prev_key = [0, 0, 0, 0] # d f j k
 record = []
+time_pass = 0
+combo = 0
+note_now = 0
 while running:
     mouse_pos = pygame.mouse.get_pos()
     now_time = time.time()
@@ -129,7 +137,7 @@ while running:
         if mouse == "down":
             if mouse_pos[0] > 300 and mouse_pos[0] < 500 and mouse_pos[1] > 100 and mouse_pos[1] < 400:
                 back = 1
-                pygame.mixer.music.set_volume(0.3)
+                pygame.mixer.music.set_volume(0.1)
                 pygame.mixer.music.play()
                 started = True
                 start_time = time.time()
@@ -152,24 +160,28 @@ while running:
             and keys[pygame.K_d]:
             showing_array[i][1] = 2000
             showing_array[i][2] = 2000
+            showing_array[i][5] = 1
             # if showing_array[i][1] == 2000:
             #     print("pop")
         if i <= len(showing_array) - 1 and check_remove(time_pass, showing_array[i], prev_key[showing_array[i][4]], 1) \
             and keys[pygame.K_f]:
             showing_array[i][1] = 2000
             showing_array[i][2] = 2000
+            showing_array[i][5] = 1
             # if showing_array[i][1] == 2000:
             #     print("pop")
         if i <= len(showing_array) - 1 and check_remove(time_pass, showing_array[i], prev_key[showing_array[i][4]], 2) \
             and keys[pygame.K_j]:
             showing_array[i][1] = 2000
             showing_array[i][2] = 2000
+            showing_array[i][5] = 1
             # if showing_array[i][1] == 2000:
             #     print("pop")
         if i <= len(showing_array) - 1 and check_remove(time_pass, showing_array[i], prev_key[showing_array[i][4]], 3) \
             and keys[pygame.K_k]:
             showing_array[i][1] = 2000
             showing_array[i][2] = 2000
+            showing_array[i][5] = 1
             # if showing_array[i][1] == 2000:
             #     print("pop")
     #print(1)
@@ -199,7 +211,7 @@ while running:
     # Notes displaying
     while time_pass <= (times_drop[pointer])+0.1 and time_pass >= (times_drop[pointer])-0.1 and not ended:
         data_array = []
-        data_array = [times_drop[pointer], locations[notes[pointer]], -100, times_arrive[pointer], notes[pointer]]
+        data_array = [times_drop[pointer], locations[notes[pointer]], -100, times_arrive[pointer], notes[pointer], 0] # the last one is for combo counting
         showing_array.append(data_array)
         # print(data_array)
         pointer += 1
@@ -234,7 +246,33 @@ while running:
             
             #print(showing_array[i][1], showing_array[i][2])
     
+    for i in range(len(times_arrive)):
+        if time_pass >= times_arrive[i]:
+            #print(True)
+            note_now = i
+    #print(note_now)
+
+    for i in range(note_now+1):
+        if i < len(showing_array):
+            #print(True)
+            if showing_array[i][5]:
+                combo += 1
+            else:
+                combo = 0
+
+    # temp = 0
+    # cord = []
+    # print(time_pass)
+    # cord.append(time_pass)
+    # for i in range(temp, len(showing_array)):
+    #     if showing_array[i][2] >= 515:
+    #         cord.append((time_pass, times_arrive[i]))
+    #         temp += 1
+
+
     #print(mouse_pos)
+    show_combo(10, 10, combo)
+    combo = 0
     pygame.display.update()
     now_end_time = time.time()
     now_end_time = round(now_end_time, 4)
@@ -245,6 +283,7 @@ while running:
     #wn.blit(mayo, (160, 430))
     #pygame.display.update()
 
+    
 pygame.quit()
 # print(record)
 print(pointer)
