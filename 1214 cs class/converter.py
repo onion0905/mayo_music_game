@@ -1,7 +1,7 @@
 new_notes = []
 new_times = []
 current_note = [0, 0, 0, 0]
-mode = "hard"
+mode = "perform"
 
 with open(f"D:\\program project\\python_project\\Games\\mayo_music_game\\note_and_time\\osu_{mode}.txt", "r") as osu:
     for i in osu:
@@ -36,8 +36,8 @@ with open(f"D:\\program project\\python_project\\Games\\mayo_music_game\\note_an
         f_time.write(i)
         f_time.write("\n")
 
-# with open(f"D:\\program project\\python_project\\Games\\mayo_music_game\\note_and_time\\notes_{mode}.txt", "a") as f_note:
-#     for i in new_notes:
-#         i = str(i)
-#         f_note.write(i)
-#         f_note.write("\n")
+with open(f"D:\\program project\\python_project\\Games\\mayo_music_game\\note_and_time\\notes_{mode}.txt", "a") as f_note:
+    for i in new_notes:
+        i = str(i)
+        f_note.write(i)
+        f_note.write("\n")

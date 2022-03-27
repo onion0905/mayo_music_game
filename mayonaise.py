@@ -6,7 +6,7 @@ import time
 from pygame import draw
 pygame.init()
 
-mode = "hard" # "normal" or "hard"
+mode = "perform" # "normal" or "hard"
 drop_before_arrive = 0.8
 pixel_per_second = 565 / drop_before_arrive
 
