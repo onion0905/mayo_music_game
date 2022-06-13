@@ -1,37 +1,23 @@
-from os import remove
 import pygame
-import math
 import time
 
-from pygame import draw
 pygame.init()
 
-mode = "perform" # "normal" or "hard"
+wn = pygame.display.set_mode((800 ,600))
+
+mode = "normal" # "normal" or "hard"
 drop_before_arrive = 0.8
 pixel_per_second = 565 / drop_before_arrive
 
-
-# Screen
-wn = pygame.display.set_mode((800 ,600))
-pygame.display.set_caption("Is Mayonnaise an Instrument?")
-mayo = pygame.image.load("images\mayo.webp")
-mayo.convert()
-pygame.display.set_icon(mayo)
-
-# Back Ground
-start_menu = pygame.image.load("images\patrick_mayo.jpg")
-start_menu.convert()
+# Object & Images
+mayo = pygame.image.load("images\mayo.webp").convert_alpha()
+start_menu = pygame.image.load("images\patrick_mayo.jpg").convert_alpha()
+start_button = pygame.image.load("images\start_button.png").convert_alpha()
 start_menu = pygame.transform.scale(start_menu, (800, 600))
-start_button = pygame.image.load("images\start_button.png")
-start_button.convert()
 start_button = pygame.transform.scale(start_button, (200, 100))
 mayo = pygame.transform.rotate(mayo, 90)
 mayo = pygame.transform.scale(mayo, (100, 100))
-
- 
-# Objects
 slot = (125, 30)
-rect = pygame.Rect(200, 0, 10, 600)
 white_back = pygame.Rect(0, 0, 800, 600)
 border_left_line = pygame.Rect(140, 0, 10, 600)
 border_right_line = pygame.Rect(650, 0, 10, 600)
@@ -39,9 +25,14 @@ display_pressed1 = pygame.Rect(150, 500, slot[0], slot[1])
 display_pressed2 = pygame.Rect(275, 500, slot[0], slot[1])
 display_pressed3 = pygame.Rect(400, 500, slot[0], slot[1])
 display_pressed4 = pygame.Rect(525, 500, slot[0], slot[1])
-music = "images\\ver.hard.mp3"
-track = pygame.mixer.music.load(music)
+music_location = "images\\ver.hard.mp3"
+track = pygame.mixer.music.load(music_location)
 font = pygame.font.Font("freesansbold.ttf", 32)
+
+# Screen
+pygame.display.set_caption("Is Mayonnaise an Instrument?")
+pygame.display.set_icon(mayo)
+
 
 # files
 times_arrive = []
@@ -66,28 +57,45 @@ for i in times_arrive:
     i = round(i, 4)
     times_drop.append(i)
 
-print(len(times_arrive))
-print(len(notes))
+# Classes
+class Note():
+    def __init__(self, drop_time, arrive_time, xcor, ycor, block):
+        self.drop_time = drop_time
+        self.arrive_time = arrive_time
+        self.xcor = xcor
+        self.ycor = ycor
+        self.block = block
+        self.hit = False
+        self.show = True
+    
+    def ycor_update(self, time_pass):
+        p = time_pass - self.drop_time # 開始墜落後經過的時間。
+        # 上面的時間 * 像素每秒 - (目前位置 + 60) = 要增加的座標 (60 是測試出來的緩衝座標)
+        self.ycor += pixel_per_second * p - (self.ycor + 60) 
+
+    def check_remove(self, time_pass):
+        block_check = keys[self.block]
+        time_check = abs(time_pass - self.arrive_time) <= 0.1
+        return block_check and time_check
+
+
 
 # Functions
-locations = [160, 285, 410, 535]
-def check_dy(now_time, drop_time, cord_y):
-    p = now_time - drop_time
-    # if pixel_per_second * p - (cord_y+100) > 0:
-    #     return pixel_per_second * p - (cord_y+100)
-    # else:
-    #     return 3
-    # return 0.6
-    return pixel_per_second * p - (cord_y+60)
+def background_display(mouse_pos):
+    global started
+    global start_time
+    if started:
+        draw_back()
+    else:
+        wn.blit(start_menu, (0, 0))
+        wn.blit(start_button, (370, 70))
+        if mouse == "down":
+            if mouse_pos[0] > 300 and mouse_pos[0] < 500 and mouse_pos[1] > 100 and mouse_pos[1] < 400:
+                pygame.mixer.music.set_volume(0.1)
+                pygame.mixer.music.play()
+                started = True
+                start_time = time.time()
 
-def check_remove(time_pass, showing_array_i, prev_key, block):
-    block_check = showing_array_i[4] == block
-    cord_y_check = showing_array_i[2] <= 800 and showing_array_i[2] >= 400 # 500, 430
-    prev_check = prev_key == 0
-
-    time_check = abs(time_pass - showing_array_i[3]) <= 0.1
-
-    return block_check and time_check and prev_check
 
 def draw_back():
     pygame.draw.rect(wn, (107, 186, 241), white_back)
@@ -101,48 +109,85 @@ def draw_back():
     pygame.draw.line(wn, (100, 100, 100), (150, 500),(650, 500))
     pygame.draw.line(wn, (100, 100, 100), (150, 530),(650, 530))
 
-def show_combo(x, y, combo):
-    combo_show = font.render(f"COMBO: {combo}", True, (255, 255, 255))
-    wn.blit(combo_show, (x, y))
+
+def draw_press():
+    if keys[pygame.K_d]:
+        pygame.draw.rect(wn, (99, 170, 219), display_pressed1)
+    if keys[pygame.K_f]:
+        pygame.draw.rect(wn, (99, 170, 219), display_pressed2)
+    if keys[pygame.K_j]:
+        pygame.draw.rect(wn, (99, 170, 219), display_pressed3)
+    if keys[pygame.K_k]:
+        pygame.draw.rect(wn, (99, 170, 219), display_pressed4)
 
 
-# Main process
-running = True
-back = 0
-mouse = ""
-pointer = 0
-start_time = 0
-started = False
-ended = False
-showing_array = []
-tapping_array = []
-prev_key = [0, 0, 0, 0] # d f j k
-record = []
-time_pass = 0
-combo = 0
-note_now = 0
-while running:
-    mouse_pos = pygame.mouse.get_pos()
-    now_time = time.time()
+def pre_time_handle():
+    global loop_start_time
+    global start_time
+    global time_pass
+    loop_start_time = time.time()
     if not started:
-        start_time = now_time
-    time_pass = float(now_time - start_time)
+        start_time = loop_start_time
+    time_pass = float(loop_start_time - start_time)
     time_pass = round(time_pass, 4)
-    # background displaying
-    if back:
-        draw_back()
-    else:
-        wn.blit(start_menu, (0, 0))
-        wn.blit(start_button, (370, 70))
-        if mouse == "down":
-            if mouse_pos[0] > 300 and mouse_pos[0] < 500 and mouse_pos[1] > 100 and mouse_pos[1] < 400:
-                back = 1
-                pygame.mixer.music.set_volume(0.1)
-                pygame.mixer.music.play()
-                started = True
-                start_time = time.time()
 
-    # pygame events
+
+def post_time_handle(loop_start_time):
+    now_end_time = time.time()
+    now_end_time = round(now_end_time, 4)
+    loop_time = now_end_time - loop_start_time
+    if loop_time < 0.001:
+        time.sleep(0.001 - loop_time)
+
+
+def note_remove(time_pass):
+    for one_note in showing_array:
+        if one_note.check_remove(time_pass):
+            one_note.hit = True
+            one_note.show = False
+
+
+def showingArray_appending(time_pass):
+    global showing_array
+    global pointer
+    coresponding_location = [160, 285, 410, 535]
+    coresponding_key = {0: pygame.K_d, 1: pygame.K_f, 2: pygame.K_j, 3: pygame.K_k}
+    while pointer < len(times_drop) and abs(time_pass - times_drop[pointer]) <= 0.1:
+        one_note = Note(times_drop[pointer], times_arrive[pointer], coresponding_location[notes[pointer]], -100, coresponding_key[notes[pointer]])
+        showing_array.append(one_note)
+        pointer += 1
+    
+
+def note_displaying(time_pass):
+    global showing_array
+    for one_note in showing_array:
+        if one_note.show:
+            one_note.ycor_update(time_pass)
+            wn.blit(mayo, (one_note.xcor, one_note.ycor))
+        if one_note.ycor >= 900:
+            one_note.show = False
+
+
+def combo_showing():
+    # count combo
+    combo = 0
+    note_died_count = 0
+    for one_note in showing_array:
+        if one_note.arrive_time < time_pass:
+            note_died_count += 1
+    for i in range(note_died_count):
+        if showing_array[i].hit:
+            combo += 1
+        else:
+            combo = 0
+    # show combo
+    combo_show = font.render(f"COMBO: {combo}", True, (255, 255, 255))
+    wn.blit(combo_show, (10, 10))
+
+
+def pygame_events():
+    global running
+    global mouse
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -152,143 +197,34 @@ while running:
         if event.type != pygame.MOUSEBUTTONDOWN:
             mouse = ""
 
-    # pressed key displaying
+
+# Global Variables
+running = True
+mouse = ""
+pointer = 0
+start_time = 0
+started = False
+showing_array = []
+time_pass = 0
+combo = 0
+showing_pointer = 0
+
+
+# Main process
+while running:
+    # basic info
+    mouse_pos = pygame.mouse.get_pos()
     keys = pygame.key.get_pressed()
-    for i in range(len(showing_array)):
-        In = True
-        if i <= len(showing_array) - 1 and check_remove(time_pass, showing_array[i], prev_key[showing_array[i][4]], 0) \
-            and keys[pygame.K_d]:
-            showing_array[i][1] = 2000
-            showing_array[i][2] = 2000
-            showing_array[i][5] = 1
-            # if showing_array[i][1] == 2000:
-            #     print("pop")
-        if i <= len(showing_array) - 1 and check_remove(time_pass, showing_array[i], prev_key[showing_array[i][4]], 1) \
-            and keys[pygame.K_f]:
-            showing_array[i][1] = 2000
-            showing_array[i][2] = 2000
-            showing_array[i][5] = 1
-            # if showing_array[i][1] == 2000:
-            #     print("pop")
-        if i <= len(showing_array) - 1 and check_remove(time_pass, showing_array[i], prev_key[showing_array[i][4]], 2) \
-            and keys[pygame.K_j]:
-            showing_array[i][1] = 2000
-            showing_array[i][2] = 2000
-            showing_array[i][5] = 1
-            # if showing_array[i][1] == 2000:
-            #     print("pop")
-        if i <= len(showing_array) - 1 and check_remove(time_pass, showing_array[i], prev_key[showing_array[i][4]], 3) \
-            and keys[pygame.K_k]:
-            showing_array[i][1] = 2000
-            showing_array[i][2] = 2000
-            showing_array[i][5] = 1
-            # if showing_array[i][1] == 2000:
-            #     print("pop")
-    #print(1)
-    # if len(showing_array) >= 7:
-    #     print(showing_array[4][1])
-    if keys[pygame.K_d]:
-        pygame.draw.rect(wn, (99, 170, 219), display_pressed1)
-        #prev_key[0] = 1
-    if not keys[pygame.K_d]:
-        prev_key[0] = 0
-    if keys[pygame.K_f]:
-        pygame.draw.rect(wn, (99, 170, 219), display_pressed2)
-        #prev_key[1] = 1
-    if not keys[pygame.K_f]:
-        prev_key[1] = 0
-    if keys[pygame.K_j]:
-        pygame.draw.rect(wn, (99, 170, 219), display_pressed3)
-        #prev_key[2] = 1
-    if not keys[pygame.K_j]:
-        prev_key[2] = 0
-    if keys[pygame.K_k]:
-        pygame.draw.rect(wn, (99, 170, 219), display_pressed4)
-        #prev_key[3] = 1
-    if not keys[pygame.K_k]:
-        prev_key[3] = 0
-    # print(time.time() - loopForTime)
-    # Notes displaying
-    while time_pass <= (times_drop[pointer])+0.1 and time_pass >= (times_drop[pointer])-0.1 and not ended:
-        data_array = []
-        data_array = [times_drop[pointer], locations[notes[pointer]], -100, times_arrive[pointer], notes[pointer], 0] # the last one is for combo counting
-        showing_array.append(data_array)
-        # print(data_array)
-        pointer += 1
-        if pointer > len(times_drop) - 2:
-            ended = True
-    # print(showing_array)
-
-    
-    showing_pointer = 0
-    # draw_back()
-    for i in range(showing_pointer, len(showing_array)):
-        if i == len(showing_array):
-            break
-        elif showing_array[i][2] > 600 or showing_array[i][1] > 800:
-            continue
-        else:
-            dy = check_dy(time_pass, showing_array[i][0], showing_array[i][2])
-            showing_array[i][2] += dy
-            record.append(dy)
-            # x_cord.append((showing_array[i][1], showing_array[i][2]))
-            if showing_array[i][1] > 800:
-                #print(True)
-                # record.append(True)
-                # wn.blit(start_button, (100, showing_array[i][2]))
-                showing_pointer += 1
-                #pygame.display.update()
-            elif showing_array[i][2] > 600:
-                showing_pointer += 1
-            elif showing_array[i][1] < 800:
-                wn.blit(mayo, (showing_array[i][1], showing_array[i][2]))
-
-            
-            #print(showing_array[i][1], showing_array[i][2])
-    
-    for i in range(len(times_arrive)):
-        if time_pass >= times_arrive[i]:
-            #print(True)
-            note_now = i
-    #print(note_now)
-
-    for i in range(note_now+1):
-        if i < len(showing_array):
-            #print(True)
-            if showing_array[i][5]:
-                combo += 1
-            else:
-                combo = 0
-
-    # temp = 0
-    # cord = []
-    # print(time_pass)
-    # cord.append(time_pass)
-    # for i in range(temp, len(showing_array)):
-    #     if showing_array[i][2] >= 515:
-    #         cord.append((time_pass, times_arrive[i]))
-    #         temp += 1
-
-
-    #print(mouse_pos)
-    show_combo(10, 10, combo)
-    combo = 0
+    pygame_events() # handle pygame events
+    pre_time_handle() # timing process when in the begin of the loop 
+    background_display(mouse_pos) # display_backgroud
+    draw_press() # draw the key that pressed
+    note_remove(time_pass) # remove old notes
+    showingArray_appending(time_pass) # add new notes
+    note_displaying(time_pass) # display notes  
+    combo_showing()
     pygame.display.update()
-    now_end_time = time.time()
-    now_end_time = round(now_end_time, 4)
-    time_loop = now_end_time - now_time
-    # print(time_loop)
-    if time_loop < 0.001 and showing_array:
-        time.sleep(0.001-time_loop)
-    #wn.blit(mayo, (160, 430))
-    #pygame.display.update()
+    post_time_handle(loop_start_time)
 
     
 pygame.quit()
-# print(record)
-print(pointer)
-sum = 0
-for i in range(len(record)):
-    sum += record[i]
-avg = sum / len(record)
-print(avg)
